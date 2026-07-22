@@ -40,7 +40,7 @@
     "source=${localEnv:HOME}/.config/gh,target=/home/vscode/.config/gh,type=bind",
     "source=${localEnv:HOME}/.config/gcloud,target=/home/vscode/.config/gcloud,type=bind"
   ],
-  "postCreateCommand": "pip install pre-commit ruff black mypy || true",
+  "postCreateCommand": "pip install uv pre-commit ruff black mypy || true",
   "remoteUser": "vscode",
   "remoteEnv": {
     "CLAUDE_CONFIG_DIR": "/home/vscode/.claude",
