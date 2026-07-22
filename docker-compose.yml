@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  db:
+    image: ankane/pgvector:16
+    container_name: referat_db
+    environment:
+      POSTGRES_USER: referat
+      POSTGRES_PASSWORD: referat_secure_pass
+      POSTGRES_DB: referat
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: referat_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  redisdata:
