@@ -4,10 +4,12 @@ import json
 import shutil
 import time
 import subprocess
+import redis
 from celery import shared_task
 from sqlalchemy.future import select
 from sentence_transformers import SentenceTransformer
 
+from app.core.config import settings
 from app.core.database import async_session_maker
 from app.models.meeting import Meeting
 from app.models.job_metrics import JobMetrics
@@ -17,6 +19,21 @@ from app.models.meeting_chunk import MeetingChunk
 
 # Model name for 384-dimensional sentence embeddings
 MODEL_NAME = "all-MiniLM-L6-v2"
+
+def publish_progress(meeting_id: int, status: str, progress: int):
+    try:
+        r = redis.from_url(settings.REDIS_URL)
+        channel_name = f"meeting_progress_{meeting_id}"
+        message = json.dumps({
+            "meeting_id": meeting_id,
+            "status": status,
+            "progress": progress
+        })
+        r.publish(channel_name, message)
+        r.close()
+        print(f"Published progress update: {status} ({progress}%)")
+    except Exception as e:
+        print(f"Failed to publish progress to Redis: {str(e)}")
 
 def run_async(coro):
     try:
@@ -41,11 +58,13 @@ async def async_analyze_meeting(meeting_id: int):
         meeting = result.scalars().first()
         if not meeting:
             print(f"Meeting with ID {meeting_id} not found.")
+            publish_progress(meeting_id, "failed", 0)
             return False
 
         # Set status to processing
         meeting.status = "processing"
         await session.commit()
+        publish_progress(meeting_id, "processing", 10)
 
         start_time = time.time()
         print(f"Starting ML pipeline execution for meeting: {meeting.title}")
@@ -56,6 +75,9 @@ async def async_analyze_meeting(meeting_id: int):
             python_exec = os.path.join(pipeline_dir, ".venv", "bin", "python")
             script_path = os.path.join(pipeline_dir, "process_meeting.py")
             rec_path = meeting.file_path
+
+            # State: Transcribing (20%)
+            publish_progress(meeting_id, "transcribing", 20)
 
             # Invoke process_meeting.py
             cmd = [python_exec, script_path, rec_path]
@@ -72,7 +94,11 @@ async def async_analyze_meeting(meeting_id: int):
                 print(f"Pipeline subprocess failed with returncode {proc.returncode}")
                 print(f"STDOUT: {proc.stdout}")
                 print(f"STDERR: {proc.stderr}")
+                publish_progress(meeting_id, "failed", 0)
                 raise Exception(f"ML Pipeline script failed: {proc.stderr}")
+
+            # State: Summarizing (70%)
+            publish_progress(meeting_id, "summarizing", 70)
 
             print("ML pipeline subprocess execution completed successfully!")
 
@@ -117,6 +143,9 @@ async def async_analyze_meeting(meeting_id: int):
                         deadline=item.get("deadline")
                     )
                     session.add(db_item)
+
+            # State: Indexing and embedding (85%)
+            publish_progress(meeting_id, "indexing", 85)
 
             # 5. Load SentenceTransformer and generate pgvector embeddings
             print(f"Loading SentenceTransformer: {MODEL_NAME}")
@@ -163,6 +192,10 @@ async def async_analyze_meeting(meeting_id: int):
             # Set status to completed and persist
             meeting.status = "completed"
             await session.commit()
+            
+            # State: Completed (100%)
+            publish_progress(meeting_id, "completed", 100)
+            
             print(f"Successfully processed meeting ID {meeting_id} in {total_duration:.2f} seconds.")
             return True
 
@@ -170,4 +203,5 @@ async def async_analyze_meeting(meeting_id: int):
             print(f"Error executing ML pipeline: {str(e)}")
             meeting.status = "failed"
             await session.commit()
+            publish_progress(meeting_id, "failed", 0)
             raise e

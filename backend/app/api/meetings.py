@@ -10,6 +10,7 @@ from app.api.deps import get_current_user
 from app.models.user import User
 from app.models.meeting import Meeting
 from app.schemas.meeting import ChunkUploadResponse, CompleteUploadResponse, MeetingOut
+from app.tasks.meeting_pipeline import analyze_meeting_task
 
 router = APIRouter(prefix="/meetings", tags=["meetings"])
 
@@ -93,6 +94,9 @@ async def complete_upload(
     db.add(db_meeting)
     await db.commit()
     await db.refresh(db_meeting)
+    
+    # Trigger Celery background task asynchronously!
+    analyze_meeting_task.delay(db_meeting.id)
     
     # Return structured response
     meeting_out = MeetingOut.model_validate(db_meeting)
