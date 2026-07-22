@@ -1,0 +1,39 @@
+<div class="upload-container">
+  <mat-card class="upload-card">
+    <mat-card-header>
+      <mat-card-title>Upload Meeting Recording</mat-card-title>
+      <mat-card-subtitle>Upload screen shares (.mp4) or audio files (.wav, .m4a)</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content class="upload-content">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Meeting Title</mat-label>
+        <input matInput [(ngModel)]="title" placeholder="e.g. Q3 Budget Review" [disabled]="isUploading">
+      </mat-form-field>
+
+      <div class="file-picker-container">
+        <input type="file" #fileInput (change)="onFileSelected($event)" style="display: none;" accept="video/*,audio/*" [disabled]="isUploading">
+        
+        <button mat-stroked-button type="button" (click)="fileInput.click()" [disabled]="isUploading">
+          <mat-icon>cloud_upload</mat-icon>
+          Choose File
+        </button>
+
+        <span class="file-name" *ngIf="selectedFile">{{ selectedFile.name }} ({{ (selectedFile.size / 1024 / 1024) | number:'1.0-2' }} MB)</span>
+        <span class="file-name no-file" *ngIf="!selectedFile">No file selected</span>
+      </div>
+
+      <div class="progress-container" *ngIf="isUploading || uploadStatus">
+        <mat-progress-bar mode="determinate" [value]="uploadProgress" *ngIf="isUploading"></mat-progress-bar>
+        <div class="status-text">{{ uploadStatus }}</div>
+      </div>
+    </mat-card-content>
+
+    <mat-card-actions align="end">
+      <button mat-raised-button color="primary" [disabled]="!selectedFile || !title || isUploading" (click)="startUpload()">
+        <mat-icon>play_arrow</mat-icon>
+        Upload & Analyze
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>
