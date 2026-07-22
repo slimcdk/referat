@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - master
+  release:
+    types: [published]
 
 permissions:
   contents: read
@@ -41,6 +43,7 @@ jobs:
           tags: |
             ghcr.io/${{ env.OWNER_LC }}/referat-backend:latest
             ghcr.io/${{ env.OWNER_LC }}/referat-backend:${{ github.sha }}
+            ${{ github.event.release.tag_name && format('ghcr.io/{0}/referat-backend:{1}', env.OWNER_LC, github.event.release.tag_name) || '' }}
 
       - name: Build and Push Frontend Image
         uses: docker/build-push-action@v5
@@ -51,3 +54,4 @@ jobs:
           tags: |
             ghcr.io/${{ env.OWNER_LC }}/referat-frontend:latest
             ghcr.io/${{ env.OWNER_LC }}/referat-frontend:${{ github.sha }}
+            ${{ github.event.release.tag_name && format('ghcr.io/{0}/referat-frontend:{1}', env.OWNER_LC, github.event.release.tag_name) || '' }}
