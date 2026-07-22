@@ -2,8 +2,7 @@ version: '3.8'
 
 services:
   db:
-    image: ankane/pgvector:pg17
-    container_name: referat_db
+    image: pgvector/pgvector:pg17
     environment:
       POSTGRES_USER: referat
       POSTGRES_PASSWORD: referat_secure_pass
@@ -16,7 +15,6 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: referat_redis
     ports:
       - "6379:6379"
     volumes:
@@ -25,7 +23,6 @@ services:
 
   workspace:
     image: mcr.microsoft.com/devcontainers/python:3.12-bookworm
-    container_name: referat_workspace
     volumes:
       - .:/workspace:cached
     network_mode: bridge
