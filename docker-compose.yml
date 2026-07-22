@@ -29,6 +29,9 @@ services:
     volumes:
       - .:/workspace:cached
     network_mode: bridge
+    # Allows easily reaching services running on the host (like local Ollama on port 11434)
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     # Keeps the workspace container running
     command: /bin/sh -c "while sleep 1000; do :; done"
 
