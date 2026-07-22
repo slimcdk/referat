@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.auth import router as auth_router
 from app.api.meetings import router as meetings_router
 from app.api.ws import router as ws_router
+from app.api.search import router as search_router
+from app.api.settings import router as settings_router
 
 app = FastAPI(
     title="Referat API",
@@ -23,6 +25,8 @@ app.add_middleware(
 app.include_router(auth_router, prefix="/api")
 app.include_router(meetings_router, prefix="/api")
 app.include_router(ws_router, prefix="/api")
+app.include_router(search_router, prefix="/api")
+app.include_router(settings_router, prefix="/api")
 
 @app.get("/api/health", tags=["health"])
 async def health_check():
