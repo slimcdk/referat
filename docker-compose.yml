@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   db:
-    image: ankane/pgvector:16
+    image: ankane/pgvector:17
     container_name: referat_db
     environment:
       POSTGRES_USER: referat
