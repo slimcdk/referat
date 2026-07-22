@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, from } from 'rxjs';
 import { concatMap, last, map } from 'rxjs/operators';
 
@@ -10,6 +10,11 @@ export class MeetingUploadService {
   private apiUrl = 'http://localhost:5000/api/meetings';
 
   constructor(private http: HttpClient) {}
+
+  private getHeaders(): HttpHeaders {
+    const token = localStorage.getItem('access_token');
+    return token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : new HttpHeaders();
+  }
 
   uploadFileInChunks(file: File, title: string): Observable<any> {
     const chunkSize = 5 * 1024 * 1024; // 5MB chunks
@@ -34,7 +39,7 @@ export class MeetingUploadService {
     let uploadedCount = 0;
     return from(chunkUploads).pipe(
       concatMap(item => {
-        return this.http.post(`${this.apiUrl}/upload/chunk`, item.formData).pipe(
+        return this.http.post(`${this.apiUrl}/upload/chunk`, item.formData, { headers: this.getHeaders() }).pipe(
           map(() => {
             uploadedCount++;
             const progress = Math.round((uploadedCount / totalChunks) * 100);
@@ -50,7 +55,7 @@ export class MeetingUploadService {
         completeData.append('filename', file.name);
         completeData.append('total_chunks', totalChunks.toString());
 
-        return this.http.post(`${this.apiUrl}/upload/complete`, completeData).pipe(
+        return this.http.post(`${this.apiUrl}/upload/complete`, completeData, { headers: this.getHeaders() }).pipe(
           map(response => {
             return { type: 'complete', data: response };
           })
