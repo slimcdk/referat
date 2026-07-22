@@ -24,11 +24,11 @@ async def lifespan(app: FastAPI):
                 print("  📝 REFERAT APP INITIAL STARTUP")
                 print("  No users found in database.")
                 print("  Seeding default administrator:")
-                print("  Email:    admin@referat.local")
+                print("  Email:    admin@referat.io")
                 print("  Password: admin_secure_pass_change_me")
                 print("==================================================")
                 default_user = User(
-                    email="admin@referat.local",
+                    email="admin@referat.io",
                     hashed_password=get_password_hash("admin_secure_pass_change_me")
                 )
                 session.add(default_user)
