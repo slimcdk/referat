@@ -37,7 +37,7 @@ This repository includes a fully-configured VS Code Devcontainer to make setup i
 
     docker compose up -d
 
-4. The devcontainer automatically forwards port 4200 (Angular) and port 8000 (FastAPI) to your host machine.
+4. The devcontainer automatically forwards port 4200 (Angular) and port 5000 (FastAPI) to your host machine.
 
 ## License
 This project is licensed under the MIT License - see the LICENSE file for details.
