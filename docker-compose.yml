@@ -23,6 +23,15 @@ services:
       - redisdata:/data
     restart: unless-stopped
 
+  workspace:
+    image: mcr.microsoft.com/devcontainers/python:3.12-bookworm
+    container_name: referat_workspace
+    volumes:
+      - .:/workspace:cached
+    network_mode: bridge
+    # Keeps the workspace container running
+    command: /bin/sh -c "while sleep 1000; do :; done"
+
 volumes:
   pgdata:
   redisdata:
