@@ -1,0 +1,15 @@
+# Secrets
+.env
+.hf_token
+
+# Local venv, models, voiceprints
+.venv/
+models/
+voiceprints/
+
+# Private meeting data (transcripts, screenshots, audio, reports) — do NOT commit
+output/
+*.wav
+
+__pycache__/
+*.pyc
