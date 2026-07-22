@@ -2,11 +2,11 @@
   "name": "Referat Devcontainer",
   "image": "mcr.microsoft.com/devcontainers/python:3.12-bookworm",
   "features": {
-    "ghcr.io/devcontainers/features/node:1": {
+    "ghcr.io/devcontainers/features/node:2": {
       "version": "20"
     },
     "ghcr.io/devcontainers/features/git-lfs:1": {},
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+    "ghcr.io/devcontainers/features/docker-in-docker:4": {}
   },
   "forwardPorts": [4200, 8000, 5432, 6379],
   "customizations": {
