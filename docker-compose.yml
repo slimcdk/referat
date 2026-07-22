@@ -25,7 +25,6 @@ services:
     image: mcr.microsoft.com/devcontainers/python:3.12-bookworm
     volumes:
       - .:/workspace:cached
-    network_mode: bridge
     # Allows easily reaching services running on the host (like local Ollama on port 11434)
     extra_hosts:
       - "host.docker.internal:host-gateway"
