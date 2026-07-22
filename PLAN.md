@@ -28,7 +28,7 @@ Build a fully-fledged, self-hosted web application for meeting analysis. The new
 - AI Agent Context: Create an AGENTS.md file containing a detailed description of the project, architecture, and coding standards to provide context for AI tools.
 - VS Code Devcontainer: Create a .devcontainer setup configured for Python and Node.js development. Include all necessary CLI tools (devcontainer CLI, pytest, jest, playwright, etc.). Map local ~/.gemini and ~/.claude directories into the container and automatically install relevant VS Code extensions (e.g., Claude Dev, GitHub Copilot).
 - Initial Verification: Build the devcontainer using the devcontainer CLI to ensure it starts correctly, then commit this entire base environment to Git before proceeding.
-- Core Infrastructure: Create docker-compose.yml for PostgreSQL with pgvector and Redis. Integrate Alembic for database migrations and define local storage directories.
+- Core Infrastructure: Create docker-compose.yml in the root for local development (PostgreSQL + pgvector and Redis). For production deployment, keep a separate docker-compose.prod.yml inside a deploy/ directory to avoid conflicts. Integrate Alembic for database migrations and define local storage directories.
 - Code Quality & Pre-commit Hooks: Set up husky (Angular) and pre-commit (Python) for automated linting.
 - Security & Authentication: Implement JWT-based email and password authentication. Store user credentials securely (hashed) in the PostgreSQL database.
 - Ensure all configuration and secrets are managed via environment variables.
