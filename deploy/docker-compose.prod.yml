@@ -1,0 +1,68 @@
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: referat
+      POSTGRES_PASSWORD: referat_secure_pass
+      POSTGRES_DB: referat
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redisdata:/data
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgresql://referat:referat_secure_pass@db:5432/referat
+      - REDIS_URL=redis://redis:6379/0
+      - STORAGE_BACKEND=local
+      - LOCAL_STORAGE_DIR=/workspace/storage
+    volumes:
+      - storage:/workspace/storage
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+      - redis
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+  worker:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    command: celery -A app.tasks worker --loglevel=info
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgresql://referat:referat_secure_pass@db:5432/referat
+      - REDIS_URL=redis://redis:6379/0
+      - STORAGE_BACKEND=local
+      - LOCAL_STORAGE_DIR=/workspace/storage
+    volumes:
+      - storage:/workspace/storage
+      - ../pipeline:/workspace/pipeline
+      - ../transscribe:/workspace/transscribe
+    depends_on:
+      - db
+      - redis
+
+volumes:
+  pgdata:
+  redisdata:
+  storage:
