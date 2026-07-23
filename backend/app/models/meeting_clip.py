@@ -7,7 +7,7 @@ class MeetingClip(Base):
     __tablename__ = "meeting_clips"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    meeting_id: Mapped[int] = mapped_column(ForeignKey("meetings.id", ondelete="CASCADE"), nullable=False)
+    meeting_id: Mapped[int] = mapped_column(ForeignKey("meetings.id", ondelete="SET NULL"), nullable=True) # Now nullable/optional for standalone clips
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     file_path: Mapped[str] = mapped_column(String(512), nullable=False)
     sequence_number: Mapped[int] = mapped_column(Integer, default=1, nullable=False)

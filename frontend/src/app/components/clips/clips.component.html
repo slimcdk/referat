@@ -1,0 +1,170 @@
+<div class="clips-container">
+  <!-- Header with Title and Record/Upload actions -->
+  <div class="clips-header">
+    <div class="title-section">
+      <h1>Optagelser</h1>
+      <p class="subtitle">Optag skærm, upload lyd- og videofiler, og tildel dem efterfølgende til dine referater</p>
+    </div>
+    
+    <div class="header-actions">
+      <!-- File upload input (invisible) -->
+      <input type="file" #standaloneInput (change)="onFileSelected($event)" style="display: none;" accept="video/*,audio/*">
+      <app-button [disabled]="isUploading() || isCurrentlyRecording()" (click)="standaloneInput.click()" icon="cloud_upload" text="Upload"></app-button>
+      <app-button [disabled]="isUploading() || isCurrentlyRecording()" (click)="isRecordingMode.set(!isRecordingMode())" [icon]="isRecordingMode() ? 'close' : 'videocam'" [text]="isRecordingMode() ? 'Anuller' : 'Optag'" color="accent"></app-button>
+    </div>
+  </div>
+
+  <!-- Inline File Selected / Upload Box -->
+  <mat-card class="upload-confirm-card" *ngIf="selectedFile && !isUploading()">
+    <mat-card-header>
+      <mat-card-title>Klar til at uploade standalone mediefil</mat-card-title>
+      <mat-card-subtitle>{{ selectedFile.name }} ({{ (selectedFile.size / 1024 / 1024) | number:'1.0-2' }} MB)</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-actions align="end" style="gap: 12px; padding-right: 16px;">
+      <app-button (click)="selectedFile = null" icon="close" text="Anuller"></app-button>
+      <app-button (click)="uploadStandaloneFile()" icon="play_arrow" text="Upload" color="primary"></app-button>
+    </mat-card-actions>
+  </mat-card>
+
+  <!-- Active Browser Recording Panel (Standalone) -->
+  <div class="recording-panel" *ngIf="isRecordingMode()">
+    <div class="recording-controls" *ngIf="!isCurrentlyRecording()">
+      <div class="mic-toggle-row">
+        <mat-icon class="mic-icon">mic</mat-icon>
+        <label for="micCheckbox" class="label">Inkluder min mikrofon (Web Audio mixing)</label>
+        <input type="checkbox" [(ngModel)]="includeMic" id="micCheckbox" class="checkbox-input">
+      </div>
+      
+      <app-button (click)="startBrowserRecording()" icon="radio_button_checked" text="Optag" color="warn"></app-button>
+    </div>
+
+    <div class="recording-active-state" *ngIf="isCurrentlyRecording()">
+      <div class="recording-indicator">
+        <span class="red-dot blinking"></span>
+        <span class="recording-time">Optager: {{ formatRecordingDuration() }}</span>
+      </div>
+      <app-button (click)="stopBrowserRecording()" icon="stop" text="Stop" color="warn"></app-button>
+    </div>
+  </div>
+
+  <!-- Upload progress bar -->
+  <div class="progress-box" *ngIf="isUploading()">
+    <mat-progress-bar mode="determinate" [value]="uploadProgress()"></mat-progress-bar>
+    <span class="progress-text">{{ uploadStatus() }}</span>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="isLoadingClips()">
+    <div class="spinner"></div>
+    <p>Henter optagelser...</p>
+  </div>
+
+  <!-- Clips Grid/List -->
+  <div class="clips-content" *ngIf="!isLoadingClips() && clips().length > 0">
+    
+    <!-- SECTION 1: U-tildelte klip (Unassigned) -->
+    <div class="clips-section">
+      <h2 class="section-title">U-tildelte Optagelser ({{ getUnassignedClips().length }})</h2>
+      <p class="section-subtitle" *ngIf="getUnassignedClips().length > 0">Disse klip er ikke tilknyttet et referat endnu. Du kan behandle dem eller tilføje dem til et referat med det samme.</p>
+      
+      <div class="clips-grid" *ngIf="getUnassignedClips().length > 0">
+        <mat-card class="clip-card" *ngFor="let clip of getUnassignedClips()">
+          <div class="clip-card-header-row">
+            <div class="clip-type-badge">🎬 Standard klip</div>
+            <span class="status-badge" [ngClass]="'status-' + clip.status">{{ formatStatus(clip.status) }}</span>
+          </div>
+
+          <mat-card-content class="clip-card-body">
+            <h3 class="clip-title" [title]="clip.title">{{ clip.title }}</h3>
+            <span class="clip-date">Oprettet: {{ clip.created_at | date:'dd. MMM yyyy, HH:mm' }}</span>
+          </mat-card-content>
+
+          <mat-card-actions class="clip-card-footer">
+            <div class="clip-action-row">
+              <app-button *ngIf="clip.status === 'pending' || clip.status === 'failed'" (click)="processClip(clip.id)" icon="settings_suggest" text="Behandl" color="primary"></app-button>
+              <span class="processing-text" *ngIf="clip.status === 'processing'">
+                <span class="mini-spinner"></span> Behandler...
+              </span>
+              <span class="completed-text" *ngIf="clip.status === 'completed'">
+                <mat-icon>check_circle</mat-icon> Færdig
+              </span>
+              
+              <app-button (click)="deleteClip(clip.id)" icon="delete" text="Slet" color="warn"></app-button>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <!-- Assignment Options -->
+            <div class="assignment-box">
+              <span class="assignment-title">🔗 Tilknyt dette klip:</span>
+              <div class="assign-buttons">
+                <!-- Dropdown Selector -->
+                <mat-form-field appearance="outline" size="small" class="select-field">
+                  <mat-label>Vælg eksisterende referat</mat-label>
+                  <mat-select #meetingSelect (selectionChange)="assignClip(clip.id, meetingSelect.value)">
+                    <mat-option *ngFor="let m of meetings()" [value]="m.id">{{ m.title }}</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <app-button (click)="createMeetingForClip(clip.id)" icon="add" text="Nyt"></app-button>
+              </div>
+            </div>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+
+      <div class="no-items-card" *ngIf="getUnassignedClips().length === 0">
+        <mat-icon class="icon">check_circle_outline</mat-icon>
+        <p>Der er geen u-tildelte klip lige nu. Alle optagelser er tilknyttet et referat.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 2: Tilknyttede klip (Assigned) -->
+    <div class="clips-section assigned-section">
+      <h2 class="section-title">Tilknyttede Klip ({{ getAssignedClips().length }})</h2>
+      
+      <div class="clips-grid" *ngIf="getAssignedClips().length > 0">
+        <mat-card class="clip-card assigned-clip-card" *ngFor="let clip of getAssignedClips()">
+          <div class="clip-card-header-row">
+            <div class="clip-type-badge assigned">📁 Tilknyttet</div>
+            <span class="status-badge" [ngClass]="'status-' + clip.status">{{ formatStatus(clip.status) }}</span>
+          </div>
+
+          <mat-card-content class="clip-card-body">
+            <h3 class="clip-title" [title]="clip.title">{{ clip.title }}</h3>
+            <span class="clip-date">Oprettet: {{ clip.created_at | date:'dd. MMM yyyy, HH:mm' }}</span>
+            <div class="assigned-meeting-badge">
+              <mat-icon>link</mat-icon>
+              <span>Referat: <strong>{{ getMeetingTitle(clip.meeting_id) }}</strong></span>
+            </div>
+          </mat-card-content>
+
+          <mat-card-actions class="clip-card-footer">
+            <div class="clip-action-row">
+              <app-button *ngIf="clip.status === 'pending' || clip.status === 'failed'" (click)="processClip(clip.id)" icon="settings_suggest" text="Behandl" color="primary"></app-button>
+              <span class="processing-text" *ngIf="clip.status === 'processing'">
+                <span class="mini-spinner"></span> Behandler...
+              </span>
+              <span class="completed-text" *ngIf="clip.status === 'completed'">
+                <mat-icon>check_circle</mat-icon> Færdig
+              </span>
+              
+              <app-button (click)="deleteClip(clip.id)" icon="delete" text="Slet" color="warn"></app-button>
+            </div>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-container" *ngIf="!isLoadingClips() && clips().length === 0">
+    <mat-icon class="empty-icon">video_library</mat-icon>
+    <h2>Ingen optagelser eller klip endnu</h2>
+    <p>Upload en eksisterende mediefil eller start en direkte skærmoptagelse for at komme i gang!</p>
+    <div class="empty-actions">
+      <app-button (click)="isRecordingMode.set(true)" icon="videocam" text="Optag nu" color="primary"></app-button>
+    </div>
+  </div>
+</div>

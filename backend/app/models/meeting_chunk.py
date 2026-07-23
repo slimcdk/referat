@@ -7,7 +7,7 @@ class MeetingChunk(Base):
     __tablename__ = "meeting_chunks"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    meeting_id: Mapped[int] = mapped_column(ForeignKey("meetings.id", ondelete="CASCADE"), nullable=False)
+    meeting_id: Mapped[int] = mapped_column(ForeignKey("meetings.id", ondelete="CASCADE"), nullable=True) # Now nullable for chunks of unassigned clips
     clip_id: Mapped[int] = mapped_column(ForeignKey("meeting_clips.id", ondelete="CASCADE"), nullable=True) # Now supports granular mapping to clips
     start_time: Mapped[float] = mapped_column(Float, nullable=False)
     end_time: Mapped[float] = mapped_column(Float, nullable=False)

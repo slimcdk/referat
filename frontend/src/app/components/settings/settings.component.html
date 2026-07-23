@@ -8,7 +8,7 @@
     <mat-card-content class="settings-content">
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Ollama LLM Modelstørrelse</mat-label>
-        <mat-select [(ngModel)]="llm_size" [disabled]="isSaving">
+        <mat-select [ngModel]="llm_size()" (ngModelChange)="llm_size.set($event)" [disabled]="isSaving()">
           <mat-option value="small">Lille (Gemma3 4B - Hurtig, lav VRAM)</mat-option>
           <mat-option value="medium">Mellem (Gemma3 12B - Balanceret)</mat-option>
           <mat-option value="large">Stor (Gemma3 27B - Høj Præcision, kun GPU)</mat-option>
@@ -17,15 +17,15 @@
 
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Dataopbevaringspolitik (Dage)</mat-label>
-        <input matInput type="number" [(ngModel)]="data_retention_days" min="0" placeholder="F.eks. 30" [disabled]="isSaving">
+        <input matInput type="number" [ngModel]="data_retention_days()" (ngModelChange)="data_retention_days.set($event)" min="0" placeholder="F.eks. 30" [disabled]="isSaving()">
         <mat-hint>Sæt til 0 for altid at beholde de rå video- og lydfiler til referatet.</mat-hint>
       </mat-form-field>
 
-      <div class="status-message" *ngIf="statusMessage">{{ statusMessage }}</div>
+      <div class="status-message" *ngIf="statusMessage()">{{ statusMessage() }}</div>
     </mat-card-content>
 
     <mat-card-actions align="end">
-      <button mat-raised-button color="primary" [disabled]="isSaving" (click)="saveSettings()">
+      <button mat-raised-button color="primary" [disabled]="isSaving()" (click)="saveSettings()">
         <mat-icon>save</mat-icon>
         Gem Ændringer
       </button>

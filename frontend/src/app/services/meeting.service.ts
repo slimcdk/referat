@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -7,10 +7,9 @@ import { Observable } from 'rxjs';
 })
 export class MeetingService {
   private apiUrl = 'http://localhost:5000/api';
+  private http = inject(HttpClient);
 
-  constructor(private http: HttpClient) {}
-
-  private getHeaders(): HttpHeaders {
+  getHeaders(): HttpHeaders {
     const token = localStorage.getItem('access_token');
     return token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : new HttpHeaders();
   }
@@ -37,6 +36,21 @@ export class MeetingService {
 
   aggregateMeeting(meetingId: number): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/meetings/${meetingId}/aggregate`, {}, { headers: this.getHeaders() });
+  }
+
+  // --- Standalone Clips Endpoints ---
+  getAllClips(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/meetings/clips/all`, { headers: this.getHeaders() });
+  }
+
+  assignClip(clipId: number, meetingId: number): Observable<any> {
+    const formData = new FormData();
+    formData.append('meeting_id', meetingId.toString());
+    return this.http.patch<any>(`${this.apiUrl}/meetings/clips/${clipId}`, formData, { headers: this.getHeaders() });
+  }
+
+  deleteClip(clipId: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/meetings/clips/${clipId}`, { headers: this.getHeaders() });
   }
 
   semanticSearch(query: string, limit: number = 10): Observable<any[]> {

@@ -8,47 +8,411 @@
 .app-toolbar {
   display: flex;
   align-items: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  z-index: 2;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  z-index: 101; // Keep navbar strictly above background content
+  gap: 16px;
+  background-color: var(--mat-sys-surface-container-low) !important; // Low elevation container color
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  transition: all 0.3s ease;
+  position: relative; // Anchor the absolute-centered search box inside the top toolbar
+
+  &.elevated-toolbar {
+    z-index: 102 !important; // Be above the backdrop overlay
+    box-shadow: none !important;
+  }
+}
+
+// Left Navigation Actions (Referater & Optagelser)
+.navbar-left-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+// Right Navigation Actions (GitHub, Theme Toggle, Settings)
+.navbar-right-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+// Mathematically Centered & Highly Visible Autocomplete Search Box
+.navbar-search-box {
+  position: absolute;
+  left: 50%;
+  top: 50%; // Mathematically center vertically inside the toolbar
+  transform: translate(-50%, -50%); // Center horizontally and vertically
+  width: 420px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &.active-search {
+    z-index: 103 !important; // Bring search container strictly above toolbar
+    width: 600px; // Expand widely during active search
+    transform: translate(-50%, -50%) !important; // Maintain perfect centering during expansion
+
+    .search-input-wrapper {
+      border-radius: 23px 23px 0 0 !important; // Flat bottom corners to merge with dropdown!
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+      border-bottom: 1px solid var(--mat-sys-outline-variant) !important;
+    }
+  }
+
+  .search-input-wrapper {
+    display: flex;
+    align-items: center;
+    background: var(--mat-sys-surface-container-high); // Solid material-derived container background
+    border-radius: 23px; // Sleek modern pill shape
+    height: 46px; // Highly prominent, taller input height
+    padding: 0 16px;
+    width: 100%;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    border: 1px solid var(--mat-sys-outline-variant);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-sizing: border-box;
+
+    &:focus-within {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      border-color: var(--mat-sys-primary);
+    }
+  }
+
+  .search-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    color: var(--mat-sys-on-surface-variant) !important; // Muted design-token icon
+    margin-right: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .close-search-btn {
+    color: var(--mat-sys-on-surface-variant) !important;
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  input {
+    border: none;
+    background: transparent;
+    color: var(--mat-sys-on-surface); // Direct Material text token
+    font-family: inherit;
+    font-size: 14px;
+    width: 80%;
+    outline: none;
+    font-weight: 500;
+
+    &::placeholder {
+      color: var(--mat-sys-on-surface-variant); // Visible placeholder token
+    }
+  }
+}
+
+// Full-screen backdrop blur behind search bar
+.search-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0; // Pure inset bounds prevent 100vw vertical scrollbar overflow (sidescroll)
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px); // Stunning blur effect putting app out of focus!
+  z-index: 100; // Directly underneath elevated toolbar and search box
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+// Live Autocomplete Dropdown Panel (Using purely native Material surface tokens!)
+.search-results-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: var(--mat-sys-surface-container-high);
+  border-radius: 0 0 16px 12px; // Rounded bottom corners
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-top: none;
+  max-height: 550px; // Increased height to show more results
+  overflow-y: auto;
+  overflow-x: hidden !important; // Completely block horizontal scrolling (sidescroll) inside the dropdown
+  z-index: 103;
+  box-sizing: border-box;
+  animation: slideDown 0.2s ease-out;
+
+  .search-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 32px;
+    color: var(--mat-sys-on-surface-variant);
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .search-results-list {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 0;
+  }
+
+  .search-result-item {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+    cursor: pointer;
+    transition: background 0.15s ease;
+
+    &:hover {
+      background: var(--mat-sys-surface-variant);
+    }
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      width: 100%;
+      box-sizing: border-box;
+
+      .result-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        color: var(--mat-sys-on-surface-variant);
+      }
+
+      .result-meeting-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--mat-sys-on-surface);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 72%; // Prevents long meeting titles from overflowing or causing sidescroll!
+        display: inline-block;
+      }
+
+      .result-similarity {
+        font-size: 11px;
+        font-weight: 700;
+        color: #2b6cb0;
+        background: rgba(66, 153, 225, 0.15);
+        padding: 2px 6px;
+        border-radius: 4px;
+        margin-left: auto;
+      }
+    }
+
+    .result-snippet {
+      font-size: 13px;
+      color: var(--mat-sys-on-surface);
+      line-height: 1.5;
+      font-style: italic;
+      margin-bottom: 6px;
+    }
+
+    .result-footer {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--mat-sys-on-surface-variant);
+      font-weight: 500;
+    }
+  }
+
+  .search-no-results {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    color: var(--mat-sys-on-surface-variant);
+    text-align: center;
+
+    .sad-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+      color: var(--mat-sys-on-surface-variant);
+      margin-bottom: 12px;
+    }
+
+    p {
+      font-size: 14px;
+      margin: 0;
+      font-weight: 500;
+    }
+  }
+
+  .search-placeholder-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 36px 24px;
+    color: var(--mat-sys-on-surface-variant);
+    text-align: center;
+    box-sizing: border-box;
+
+    p {
+      font-size: 14px;
+      margin: 0;
+      font-weight: 500;
+      line-height: 1.2;
+    }
+  }
 }
 
 .toolbar-spacer {
   flex: 1 1 auto;
 }
 
-.app-sidenav-container {
-  flex: 1;
+// GitHub Button 2-Line Layout (No resizing/width animations, always snug and expanded!)
+.github-navbar-btn {
+  .github-version-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    line-height: 1.25;
+    height: 100%;
+    text-align: left;
+    
+    .repo-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--mat-sys-on-surface);
+    }
+    
+    .repo-version {
+      font-size: 9px;
+      font-family: monospace;
+      font-weight: 500;
+      color: var(--mat-sys-on-surface-variant);
+    }
+  }
 }
 
-.app-sidenav {
-  width: 240px;
-  background-color: #fafafa;
-  border-right: 1px solid rgba(0,0,0,0.08);
+// ==========================================================================
+// Bottom-Right Floating Action Button (FAB)
+// ==========================================================================
+.floating-fab-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 999; // Float strictly above everything
 }
 
-.active-link {
-  background-color: rgba(63, 81, 181, 0.08) !important;
-  color: #3f51b5 !important;
-  font-weight: 500;
+.fab-btn {
+  width: 56px !important;
+  height: 56px !important;
+  border-radius: 28px !important;
+  background-color: var(--mat-sys-primary) !important;
+  color: var(--mat-sys-on-primary) !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.2s !important;
+
+  mat-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+    color: var(--mat-sys-on-primary) !important;
+    transition: transform 0.2s ease;
+  }
+
+  &:hover {
+    transform: scale(1.1);
+    background-color: var(--mat-sys-primary-container) !important;
+    color: var(--mat-sys-on-primary-container) !important;
+
+    mat-icon {
+      color: var(--mat-sys-on-primary-container) !important;
+      transform: rotate(90deg); // Rotate the '+' smoothly into an 'x' cross!
+    }
+  }
 }
 
+// Custom dropdown menu styling using native M3 tokens
+::v-deep .mat-mdc-menu-panel {
+  background-color: var(--mat-sys-surface-container-high) !important;
+  border: 1px solid var(--mat-sys-outline-variant) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12) !important;
+  min-width: 160px !important;
+
+  .mat-mdc-menu-item {
+    color: var(--mat-sys-on-surface) !important;
+    font-weight: 500;
+    font-size: 13px;
+    height: 40px !important;
+    display: flex;
+    align-items: center;
+    
+    mat-icon {
+      color: var(--mat-sys-on-surface-variant) !important;
+      margin-right: 12px !important;
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+
+    &:hover {
+      background-color: var(--mat-sys-surface-variant) !important;
+    }
+  }
+}
+
+// Content Area - Centered responsive body content
 .app-content {
-  padding: 16px;
-  background-color: #f5f5f5;
+  flex: 1;
+  background-color: var(--mat-sys-background);
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
-/* Light / Dark Mode integration */
-.dark-theme {
-  .app-sidenav {
-    background-color: #1e1e1e !important;
-    border-right-color: rgba(255,255,255,0.08);
-  }
-  .app-content {
-    background-color: #121212 !important;
-    color: #ffffff;
-  }
-  .active-link {
-    background-color: rgba(255, 255, 255, 0.08) !important;
-    color: #ff4081 !important;
-  }
+.mini-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2.5px solid var(--mat-sys-outline-variant);
+  border-top: 2.5px solid var(--mat-sys-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes slideDown {
+  0% { transform: translateY(-8px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

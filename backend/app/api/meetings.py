@@ -12,6 +12,7 @@ from app.api.deps import get_current_user
 from app.models.user import User
 from app.models.meeting import Meeting
 from app.models.meeting_clip import MeetingClip
+from app.models.meeting_chunk import MeetingChunk
 from app.schemas.meeting import ChunkUploadResponse, CompleteUploadResponse, MeetingOut, MeetingCreate, ClipOut
 
 router = APIRouter(prefix="/meetings", tags=["meetings"])
@@ -227,3 +228,140 @@ async def aggregate_meeting(
     
     aggregate_meeting_task.delay(meeting_id)
     return {"status": "success", "message": "Meeting summary aggregation started asynchronously."}
+
+# 9. List all clips (both assigned and unassigned)
+@router.get("/clips/all", response_model=List[ClipOut])
+async def list_all_clips(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    stmt = select(MeetingClip).order_by(MeetingClip.created_at.desc())
+    result = await db.execute(stmt)
+    return result.scalars().all()
+
+# 10. Finalize a standalone clip upload (no meeting_id required)
+@router.post("/clips/upload/complete", response_model=CompleteUploadResponse)
+async def complete_standalone_upload(
+    upload_id: str = Form(...),
+    filename: str = Form(...),
+    total_chunks: int = Form(...),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    chunk_dir = os.path.join(TEMP_DIR, upload_id)
+    
+    if not os.path.exists(chunk_dir):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No chunks found for this upload ID."
+        )
+        
+    for i in range(total_chunks):
+        chunk_file = os.path.join(chunk_dir, f"chunk_{i}")
+        if not os.path.exists(chunk_file):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Missing chunk {i} for this upload."
+            )
+            
+    _, ext = os.path.splitext(filename)
+    final_filename = f"{upload_id}{ext}"
+    final_path = os.path.join(MEETINGS_DIR, final_filename)
+    
+    with open(final_path, "wb") as final_file:
+        for i in range(total_chunks):
+            chunk_file = os.path.join(chunk_dir, f"chunk_{i}")
+            with open(chunk_file, "rb") as chunk:
+                shutil.copyfileobj(chunk, final_file)
+                
+    shutil.rmtree(chunk_dir)
+    
+    # Create the standalone MeetingClip entry (meeting_id = None)
+    db_clip = MeetingClip(
+        meeting_id=None,
+        title=filename,
+        file_path=final_path,
+        sequence_number=1,
+        status="pending"
+    )
+    db.add(db_clip)
+    await db.commit()
+    await db.refresh(db_clip)
+    
+    clip_out = ClipOut.model_validate(db_clip)
+    return {
+        "status": "success",
+        "message": "Standalone clip upload completed and merged successfully.",
+        "clip": clip_out
+    }
+
+# 11. Assign a clip to an existing referat
+@router.patch("/clips/{clip_id}")
+async def assign_clip(
+    clip_id: int,
+    meeting_id: int = Form(...),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    stmt = select(MeetingClip).filter(MeetingClip.id == clip_id)
+    result = await db.execute(stmt)
+    clip = result.scalars().first()
+    if not clip:
+        raise HTTPException(status_code=404, detail="Clip not found")
+        
+    stmt_m = select(Meeting).options(selectinload(Meeting.clips)).filter(Meeting.id == meeting_id)
+    result_m = await db.execute(stmt_m)
+    meeting = result_m.scalars().first()
+    if not meeting:
+        raise HTTPException(status_code=404, detail="Target referat not found")
+        
+    # Update clip details
+    seq_num = len(meeting.clips) + 1
+    clip.meeting_id = meeting_id
+    clip.sequence_number = seq_num
+    
+    # Also update associated search chunks to point to this meeting
+    await db.execute(
+        MeetingChunk.__table__.update()
+        .where(MeetingChunk.clip_id == clip_id)
+        .values(meeting_id=meeting_id)
+    )
+    
+    if meeting.status == "empty":
+        meeting.status = "pending"
+        
+    await db.commit()
+    await db.refresh(clip)
+    return {
+        "status": "success",
+        "message": "Clip successfully assigned to the referat.",
+        "clip": ClipOut.model_validate(clip)
+    }
+
+# 12. Delete a single standalone clip
+@router.delete("/clips/{clip_id}")
+async def delete_standalone_clip(
+    clip_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    stmt = select(MeetingClip).filter(MeetingClip.id == clip_id)
+    result = await db.execute(stmt)
+    clip = result.scalars().first()
+    if not clip:
+        raise HTTPException(status_code=404, detail="Clip not found")
+        
+    # Delete clip file on disk
+    if clip.file_path and os.path.exists(clip.file_path):
+        try:
+            os.remove(clip.file_path)
+            clip_id_str = os.path.basename(clip.file_path).split('.')[0]
+            clip_outdir = os.path.join(settings.LOCAL_STORAGE_DIR, "pipeline", "output", clip_id_str)
+            if os.path.exists(clip_outdir):
+                shutil.rmtree(clip_outdir)
+        except Exception as e:
+            print(f"Error deleting file/folder: {str(e)}")
+            
+    await db.delete(clip)
+    await db.commit()
+    return {"status": "success", "message": "Clip deleted successfully."}

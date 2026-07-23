@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -25,13 +26,25 @@ import { MeetingService } from '../../services/meeting.service';
   templateUrl: './search.component.html',
   styleUrl: './search.component.scss'
 })
-export class SearchComponent {
+export class SearchComponent implements OnInit {
+  private meetingService = inject(MeetingService);
+  private route = inject(ActivatedRoute);
+
   searchQuery: string = '';
   isSearching: boolean = false;
   results: any[] = [];
   searched: boolean = false;
 
-  constructor(private meetingService: MeetingService) {}
+  ngOnInit(): void {
+    // Listen to global top navbar searches
+    this.route.queryParams.subscribe(params => {
+      const q = params['q'];
+      if (q) {
+        this.searchQuery = q;
+        this.onSearch();
+      }
+    });
+  }
 
   onSearch(): void {
     if (!this.searchQuery.trim()) return;

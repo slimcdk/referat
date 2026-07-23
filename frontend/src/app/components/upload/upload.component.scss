@@ -8,19 +8,19 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 32px;
 
   h1 {
     font-size: 28px;
     font-weight: 700;
     margin: 0 0 6px 0;
-    color: #1a1f36;
+    color: var(--mat-sys-on-surface);
   }
 
   .subtitle {
     font-size: 14px;
     margin: 0;
-    color: #697386;
+    color: var(--mat-sys-on-surface-variant);
   }
 
   .create-btn {
@@ -31,9 +31,10 @@
 }
 
 .create-card {
-  margin-bottom: 24px;
-  border-radius: 8px;
-  border: 1px solid #e3e8ee;
+  margin-bottom: 32px;
+  border-radius: 12px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
 
   .create-content {
@@ -55,118 +56,145 @@
   .spinner {
     width: 40px;
     height: 40px;
-    border: 3px solid #f3f3f3;
-    border-top: 3px solid #3f51b5;
+    border: 3px solid var(--mat-sys-outline-variant);
+    border-top: 3px solid var(--mat-sys-primary);
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin-bottom: 16px;
   }
 
   p {
-    color: #697386;
+    color: var(--mat-sys-on-surface-variant);
     font-size: 14px;
     margin: 0;
   }
 }
 
-.meetings-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+// Beautiful Material 3 Cards Grid Layout
+.meetings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.meeting-row-card {
-  border-radius: 8px;
-  border: 1px solid #e3e8ee;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-  transition: all 0.2s ease-in-out;
+// Modern Snug Card Styling (material.angular.dev Clean Flat Card Style)
+.meeting-card {
+  border-radius: 8px !important;
+  border: 1px solid var(--mat-sys-outline-variant) !important;
+  background: var(--mat-sys-surface-container) !important;
+  box-shadow: none !important; // 100% Flat!
+  transition: border-color 0.2s ease !important;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
 
   &:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-    border-color: #cbd5e0;
+    box-shadow: none !important;
+    border-color: var(--mat-sys-outline) !important;
+    transform: none !important;
   }
 
+  // Pure Magic: Expanded cards span across the entire row of the grid!
   &.active-card {
-    border-color: #3f51b5;
-    box-shadow: 0 4px 12px rgba(63, 81, 181, 0.08);
+    grid-column: 1 / -1; // Stretch wide across all columns!
+    border-color: var(--mat-sys-primary) !important;
+    box-shadow: none !important;
+    transform: none !important; // Prevent hover lift on full-width dashboard
   }
 
-  .meeting-row-content {
+  .meeting-card-header {
+    padding: 20px 20px 12px 20px;
+    display: flex;
+    align-items: center;
+
+    .meeting-avatar {
+      font-size: 24px;
+      background: var(--mat-sys-surface-container-low);
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--mat-sys-outline-variant);
+    }
+
+    .meeting-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--mat-sys-on-surface);
+      margin: 0;
+    }
+
+    .meeting-date {
+      font-size: 12px;
+      color: var(--mat-sys-on-surface-variant);
+      margin-top: 2px;
+    }
+  }
+
+  .meeting-card-body {
+    padding: 0 20px 16px 20px;
+    flex: 1; // Fills vertical spacing
+  }
+
+  .meeting-stats-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 24px;
-    width: 100%;
-    box-sizing: border-box;
+    background: var(--mat-sys-surface-container-low);
+    border-radius: 8px;
+    padding: 10px 14px;
+    border: 1px solid var(--mat-sys-outline-variant);
+
+    .clips-stat {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--mat-sys-on-surface);
+      font-size: 13px;
+      font-weight: 500;
+
+      .clips-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+        color: var(--mat-sys-on-surface-variant);
+      }
+    }
   }
-}
 
-.col-info {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex: 2;
-
-  .meeting-icon-badge {
-    font-size: 24px;
-    background: #f7fafc;
-    border-radius: 50%;
-    width: 48px;
-    height: 48px;
+  .meeting-card-actions {
+    padding: 12px 20px 20px 20px;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #edf2f7;
-  }
+    gap: 8px;
+    justify-content: flex-end;
+    border-top: 1px solid var(--mat-sys-outline-variant);
 
-  .text-details {
-    display: flex;
-    flex-direction: column;
-  }
+    button {
+      font-weight: 600;
+      font-size: 13px;
+    }
 
-  .meeting-title {
-    font-size: 16px;
-    font-weight: 600;
-    margin: 0 0 4px 0;
-    color: #1a1f36;
-  }
-
-  .meeting-date {
-    font-size: 12px;
-    color: #697386;
+    .delete-btn {
+      color: var(--mat-sys-on-surface-variant);
+      &:hover {
+        color: #e53e3e;
+        background: rgba(229, 62, 62, 0.05);
+      }
+    }
   }
 }
 
-.col-clips {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-  color: #4f566b;
-
-  .clips-icon {
-    font-size: 20px;
-    width: 20px;
-    height: 20px;
-  }
-
-  .clips-count {
-    font-size: 14px;
-    font-weight: 500;
-  }
-}
-
-.col-status {
-  flex: 1;
-  display: flex;
-  justify-content: flex-start;
-}
-
+// Status Badges (Colorized text-contrast chips)
 .status-badge {
-  font-size: 12px;
-  font-weight: 600;
-  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 10px;
   border-radius: 12px;
   display: inline-flex;
   align-items: center;
@@ -174,84 +202,68 @@
   letter-spacing: 0.5px;
 
   &.status-empty {
-    background: #edf2f7;
-    color: #4a5568;
+    background: var(--mat-sys-surface-variant);
+    color: var(--mat-sys-on-surface-variant);
   }
   &.status-pending {
-    background: #ebf8ff;
-    color: #2b6cb0;
+    background: rgba(66, 153, 225, 0.15);
+    color: #3182ce;
   }
   &.status-processing {
-    background: #fefcbf;
+    background: rgba(236, 201, 75, 0.15);
     color: #b7791f;
     position: relative;
-    padding-left: 24px;
+    padding-left: 20px;
 
     &::before {
       content: '';
       position: absolute;
-      left: 8px;
-      width: 8px;
-      height: 8px;
-      border: 2px solid #b7791f;
+      left: 6px;
+      width: 6px;
+      height: 6px;
+      border: 1.5px solid #b7791f;
       border-top-color: transparent;
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
   }
   &.status-completed {
-    background: #c6f6d5;
-    color: #22543d;
+    background: rgba(72, 187, 120, 0.15);
+    color: #2f855a;
   }
   &.status-failed {
-    background: #fed7d7;
-    color: #9b2c2c;
-  }
-}
-
-.col-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-  justify-content: flex-end;
-
-  button {
-    font-weight: 500;
-  }
-
-  .delete-btn {
-    color: #a0aec0;
-    &:hover {
-      color: #e53e3e;
-      background: #fff5f5;
-    }
+    background: rgba(245, 101, 101, 0.15);
+    color: #c53030;
   }
 }
 
 // Expanded details view layout
 .meeting-expanded-details {
-  background: #fcfdfd;
-  padding: 24px;
+  background: var(--mat-sys-surface-container-low);
+  width: 100%;
   box-sizing: border-box;
+
+  .expanded-inner {
+    padding: 24px;
+    box-sizing: border-box;
+  }
 
   .details-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 32px;
-    margin-top: 16px;
   }
 
   h3 {
     font-size: 16px;
     font-weight: 600;
     margin: 0 0 4px 0;
-    color: #1a1f36;
+    color: var(--mat-sys-on-surface);
   }
 
   .subtitle {
     font-size: 12px;
-    color: #697386;
+    color: var(--mat-sys-on-surface-variant);
     margin-bottom: 16px;
     display: block;
   }
@@ -267,14 +279,14 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  background: #fff;
-  border: 1px dashed #cbd5e0;
-  border-radius: 6px;
+  background: var(--mat-sys-surface-container);
+  border: 1px dashed var(--mat-sys-outline-variant);
+  border-radius: 8px;
   padding: 12px 16px;
 
   .selected-file-name {
     font-size: 13px;
-    color: #4a5568;
+    color: var(--mat-sys-on-surface);
     max-width: 200px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -287,9 +299,9 @@
 }
 
 .progress-box {
-  background: #fff;
-  border: 1px solid #edf2f7;
-  border-radius: 6px;
+  background: var(--mat-sys-surface-container);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
   padding: 12px 16px;
   display: flex;
   flex-direction: column;
@@ -297,7 +309,7 @@
 
   .progress-text {
     font-size: 12px;
-    color: #4a5568;
+    color: var(--mat-sys-on-surface);
     font-weight: 500;
   }
 }
@@ -314,9 +326,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #fff;
-  border: 1px solid #e3e8ee;
-  border-radius: 6px;
+  background: var(--mat-sys-surface-container);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
   padding: 12px 16px;
 
   .clip-main {
@@ -327,14 +339,14 @@
 
   .clip-index {
     font-weight: 700;
-    color: #a0aec0;
+    color: var(--mat-sys-on-surface-variant);
     font-size: 14px;
   }
 
   .clip-name {
     font-size: 14px;
     font-weight: 500;
-    color: #1a1f36;
+    color: var(--mat-sys-on-surface);
     max-width: 220px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -350,7 +362,7 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    color: #38a169;
+    color: #48bb78;
     font-size: 13px;
     font-weight: 500;
 
@@ -374,7 +386,7 @@
 .mini-spinner {
   width: 12px;
   height: 12px;
-  border: 2px solid #f3f3f3;
+  border: 2px solid var(--mat-sys-outline-variant);
   border-top: 2px solid #d69e2e;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -387,18 +399,18 @@
   align-items: center;
   justify-content: center;
   padding: 40px;
-  background: #f7fafc;
-  border: 1px dashed #e2e8f0;
-  border-radius: 6px;
+  background: var(--mat-sys-surface-container);
+  border: 1px dashed var(--mat-sys-outline-variant);
+  border-radius: 8px;
   text-align: center;
-  color: #718096;
+  color: var(--mat-sys-on-surface-variant);
 
   mat-icon {
     font-size: 32px;
     width: 32px;
     height: 32px;
     margin-bottom: 12px;
-    color: #a0aec0;
+    color: var(--mat-sys-on-surface-variant);
   }
 
   p {
@@ -412,7 +424,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  border-left: 1px solid #edf2f7;
+  border-left: 1px solid var(--mat-sys-outline-variant);
   padding-left: 32px;
 }
 
@@ -433,24 +445,24 @@
   .spinner {
     width: 30px;
     height: 30px;
-    border: 3px solid #f3f3f3;
-    border-top: 3px solid #e0680d;
+    border: 3px solid var(--mat-sys-outline-variant);
+    border-top: 3px solid var(--mat-sys-primary);
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin-bottom: 16px;
   }
 
   p {
-    color: #697386;
+    color: var(--mat-sys-on-surface-variant);
     font-size: 13px;
     margin: 0;
   }
 }
 
 .summary-content {
-  background: #fff;
-  border: 1px solid #e3e8ee;
-  border-radius: 6px;
+  background: var(--mat-sys-surface-container);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
   padding: 20px;
   max-height: 400px;
   overflow-y: auto;
@@ -460,7 +472,7 @@
   font-family: inherit;
   font-size: 14px;
   line-height: 1.6;
-  color: #2d3748;
+  color: var(--mat-sys-on-surface);
   white-space: pre-wrap;
   margin: 0;
 }
@@ -471,9 +483,9 @@
   align-items: center;
   justify-content: center;
   padding: 64px 24px;
-  background: #fff;
-  border: 1px solid #e3e8ee;
-  border-radius: 8px;
+  background: var(--mat-sys-surface-container);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 12px;
   text-align: center;
   margin-top: 24px;
 
@@ -481,19 +493,19 @@
     font-size: 48px;
     width: 48px;
     height: 48px;
-    color: #cbd5e0;
+    color: var(--mat-sys-on-surface-variant);
     margin-bottom: 16px;
   }
 
   h2 {
     font-size: 20px;
     margin: 0 0 8px 0;
-    color: #1a1f36;
+    color: var(--mat-sys-on-surface);
   }
 
   p {
     font-size: 14px;
-    color: #697386;
+    color: var(--mat-sys-on-surface-variant);
     margin: 0 0 24px 0;
     max-width: 400px;
   }

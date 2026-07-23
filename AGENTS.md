@@ -27,3 +27,24 @@ This file provides system context for AI coding agents (such as Claude, Gemini, 
   - Frontend E2E: Playwright executing core user journeys against mock seeded databases.
 - Code Quality: Automated linting via Git hooks: Husky (frontend) and pre-commit (backend).
 - Git Hygiene: No temporary test files; keep tests in permanent folders (like e2e/tests/) and unit tests next to source files.
+
+### Frontend Design & UX Guidelines
+- **Pure Top-Nav Layout**: The application must not use sidebars, drawers, or collapsible side menus. All routing, navigation, and utilities must be placed inside the global top navbar.
+- **Thematic Colors (Material 3)**: Utilize official Angular Material 3 design tokens (`--mat-sys-*`) for styling backgrounds, borders, and typography. The primary brand colors are Cyan (`mat.$cyan-palette`) and Orange (`mat.$orange-palette`) for tertiary accents.
+- **Interactive Hover-Expanding Buttons**: ALL buttons containing a `mat-icon` and text must be styled with the global `.action-btn` class. By default, they must appear as icon-only circles (`width: 38px`), sliding open elegantly into a pill shape (`width: 135px`, or custom widths like `140px` for GitHub) on mouse hover to reveal the inner text wrapped in `.btn-text`.
+- **Zoneless & Signals Compatibility**: Because the frontend uses Zoneless change detection, all asynchronous properties (especially HTTP subscriptions or dynamic updates) must be bound using Angular Signals (`signal()`) to notify change detection natively.
+
+## Agent skills
+
+### Issue tracker
+
+Issues and PRDs live in the repository's GitHub Issues (uses the `gh` CLI). See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Using the default triage label vocabulary. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context documentation layout. See `docs/agents/domain.md`.
+

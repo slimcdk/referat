@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -10,6 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { MeetingService } from '../../services/meeting.service';
 import { MeetingUploadService } from '../../services/meeting-upload.service';
+import { AppButton } from '../button/button.component';
 
 @Component({
   selector: 'app-upload',
@@ -23,12 +24,16 @@ import { MeetingUploadService } from '../../services/meeting-upload.service';
     MatProgressBarModule,
     MatButtonModule,
     MatIconModule,
-    MatDividerModule
+    MatDividerModule,
+    AppButton
   ],
   templateUrl: './upload.component.html',
   styleUrl: './upload.component.scss'
 })
 export class UploadComponent implements OnInit {
+  private meetingService = inject(MeetingService);
+  private uploadService = inject(MeetingUploadService);
+
   // Use Angular Signals for asynchronously updated fields to notify Zoneless change detection
   meetings = signal<any[]>([]);
   isLoadingMeetings = signal<boolean>(false);
@@ -40,11 +45,6 @@ export class UploadComponent implements OnInit {
   newMeetingTitle: string = '';
   selectedMeeting: any | null = null;
   selectedFile: File | null = null;
-
-  constructor(
-    private meetingService: MeetingService,
-    private uploadService: MeetingUploadService
-  ) {}
 
   ngOnInit(): void {
     this.loadMeetings();

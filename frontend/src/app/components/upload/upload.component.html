@@ -2,13 +2,10 @@
   <!-- Header with Title and Create Referat Action -->
   <div class="admin-header">
     <div class="title-section">
-      <h1>Referater & Administration</h1>
+      <h1>Referater</h1>
       <p class="subtitle">Administrer referater, upload videoklip og generer fælles AI-referater</p>
     </div>
-    <button mat-raised-button color="primary" class="create-btn" (click)="showCreateForm = !showCreateForm">
-      <mat-icon>add</mat-icon>
-      Opret Nyt Referat
-    </button>
+    <app-button class="create-btn" (click)="showCreateForm = !showCreateForm" icon="add" text="Opret" color="primary"></app-button>
   </div>
 
   <!-- Inline Create Referat Form -->
@@ -19,12 +16,12 @@
     <mat-card-content class="create-content">
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Referatets Titel</mat-label>
-        <input matInput [(ngModel)]="newMeetingTitle" placeholder="F.eks. Ugentligt Statusreferat" (keyup.enter)="createMeeting()">
+        <input matInput [(ngModel)]="newMeetingTitle" placeholder="F.eks. Ugentligt Statusreferat" autocomplete="off" (keyup.enter)="createMeeting()">
       </mat-form-field>
     </mat-card-content>
-    <mat-card-actions align="end">
-      <button mat-button (click)="showCreateForm = false">Anuller</button>
-      <button mat-raised-button color="primary" [disabled]="!newMeetingTitle.trim()" (click)="createMeeting()">Opret</button>
+    <mat-card-actions align="end" style="gap: 12px; padding-right: 16px;">
+      <app-button (click)="showCreateForm = false" icon="close" text="Anuller"></app-button>
+      <app-button [disabled]="!newMeetingTitle.trim()" (click)="createMeeting()" icon="check" text="Opret" color="primary"></app-button>
     </mat-card-actions>
   </mat-card>
 
@@ -34,139 +31,119 @@
     <p>Henter referater...</p>
   </div>
 
-  <!-- Meetings List (Full-Width Card Layout resembling a table) -->
-  <div class="meetings-list" *ngIf="!isLoadingMeetings() && meetings().length > 0">
-    <mat-card class="meeting-row-card" *ngFor="let meeting of meetings()" [class.active-card]="selectedMeeting?.id === meeting.id">
-      <div class="meeting-row-content">
-        <!-- Icon & Basic Info -->
-        <div class="col-info">
-          <div class="meeting-icon-badge">📝</div>
-          <div class="text-details">
-            <h3 class="meeting-title">{{ meeting.title }}</h3>
-            <span class="meeting-date">{{ meeting.date | date:'dd. MMM yyyy, HH:mm' }}</span>
+  <!-- Meetings Grid (Beautiful Cards Layout) -->
+  <div class="meetings-grid" *ngIf="!isLoadingMeetings() && meetings().length > 0">
+    <mat-card class="meeting-card" *ngFor="let meeting of meetings()" [class.active-card]="selectedMeeting?.id === meeting.id">
+      
+      <!-- Card Header -->
+      <mat-card-header class="meeting-card-header">
+        <div mat-card-avatar class="meeting-avatar">📝</div>
+        <mat-card-title class="meeting-title">{{ meeting.title }}</mat-card-title>
+        <mat-card-subtitle class="meeting-date">{{ meeting.date | date:'dd. MMM yyyy, HH:mm' }}</mat-card-subtitle>
+      </mat-card-header>
+
+      <!-- Card Content (Quick Stats Row) -->
+      <mat-card-content class="meeting-card-body">
+        <div class="meeting-stats-row">
+          <div class="clips-stat">
+            <mat-icon class="clips-icon">video_library</mat-icon>
+            <span class="clips-count">{{ meeting.clips?.length || 0 }} klip</span>
+          </div>
+          <div class="status-stat">
+            <span class="status-badge" [ngClass]="'status-' + meeting.status">
+              {{ formatStatus(meeting.status) }}
+            </span>
           </div>
         </div>
+      </mat-card-content>
 
-        <!-- Clips Count -->
-        <div class="col-clips">
-          <mat-icon class="clips-icon">video_library</mat-icon>
-          <span class="clips-count">{{ meeting.clips?.length || 0 }} klip</span>
-        </div>
+      <!-- Card Actions -->
+      <mat-card-actions class="meeting-card-actions" align="end">
+        <app-button (click)="selectMeeting(meeting)" [icon]="selectedMeeting?.id === meeting.id ? 'expand_less' : 'visibility'" [text]="selectedMeeting?.id === meeting.id ? 'Skjul' : 'Vis'"></app-button>
+        <app-button (click)="deleteMeeting(meeting.id, $event)" icon="delete" text="Slet" color="warn"></app-button>
+      </mat-card-actions>
 
-        <!-- Status Badge -->
-        <div class="col-status">
-          <span class="status-badge" [ngClass]="'status-' + meeting.status">
-            {{ formatStatus(meeting.status) }}
-          </span>
-        </div>
-
-        <!-- Actions -->
-        <div class="col-actions">
-          <button mat-stroked-button (click)="selectMeeting(meeting)">
-            <mat-icon>{{ selectedMeeting?.id === meeting.id ? 'expand_less' : 'visibility' }}</mat-icon>
-            {{ selectedMeeting?.id === meeting.id ? 'Skjul' : 'Vis Detaljer' }}
-          </button>
-          <button mat-icon-button color="warn" class="delete-btn" (click)="deleteMeeting(meeting.id, $event)">
-            <mat-icon>delete</mat-icon>
-          </button>
-        </div>
-      </div>
-
-      <!-- Expanded Detail Section for Selected Meeting -->
+      <!-- Expanded Detail Section for Selected Meeting (Smooth expansion inside card) -->
       <div class="meeting-expanded-details" *ngIf="selectedMeeting?.id === meeting.id">
         <mat-divider></mat-divider>
-        
-        <div class="details-grid">
-          <!-- Left: Clip Upload and Clip List -->
-          <div class="details-clips-section">
-            <div class="section-title-row">
-              <h3>Videoklip i dette referat</h3>
-              <span class="subtitle">Upload flere klip for at binde dem sammen</span>
-            </div>
+        <div class="expanded-inner">
+          <div class="details-grid">
+            <!-- Left: Clip Upload and Clip List -->
+            <div class="details-clips-section">
+              <div class="section-title-row">
+                <h3>Videoklip i dette referat</h3>
+                <span class="subtitle">Upload flere klip for at binde dem sammen</span>
+              </div>
 
-            <!-- Clip Upload Field -->
-            <div class="clip-upload-box">
-              <input type="file" #clipInput (change)="onFileSelected($event)" style="display: none;" accept="video/*,audio/*">
-              <button mat-stroked-button type="button" [disabled]="isUploading()" (click)="clipInput.click()">
-                <mat-icon>cloud_upload</mat-icon>
-                Vælg klip (.mp4 / .wav)
-              </button>
-              <span class="selected-file-name" *ngIf="selectedFile">{{ selectedFile.name }} ({{ (selectedFile.size / 1024 / 1024) | number:'1.0-2' }} MB)</span>
-              <button mat-raised-button color="primary" class="upload-btn" [disabled]="!selectedFile || isUploading()" (click)="uploadClip()">
-                <mat-icon>play_arrow</mat-icon>
-                Upload klip
-              </button>
-            </div>
-
-            <!-- Upload progress bar -->
-            <div class="progress-box" *ngIf="isUploading()">
-              <mat-progress-bar mode="determinate" [value]="uploadProgress()"></mat-progress-bar>
-              <span class="progress-text">{{ uploadStatus() }}</span>
-            </div>
-
-            <!-- List of Clips under Meeting -->
-            <div class="clips-list" *ngIf="meeting.clips && meeting.clips.length > 0">
-              <div class="clip-item" *ngFor="let clip of meeting.clips">
-                <div class="clip-main">
-                  <div class="clip-index">#{{ clip.sequence_number }}</div>
-                  <div class="clip-name">{{ clip.title }}</div>
-                  <span class="status-badge" [ngClass]="'status-' + clip.status">
-                    {{ formatStatus(clip.status) }}
-                  </span>
-                </div>
+              <!-- Clip Upload Field -->
+              <div class="clip-upload-box">
+                <input type="file" #clipInput (change)="onFileSelected($event)" style="display: none;" accept="video/*,audio/*">
+                <app-button [disabled]="isUploading()" (click)="clipInput.click()" icon="cloud_upload" text="Vælg"></app-button>
+                <span class="selected-file-name" *ngIf="selectedFile">{{ selectedFile.name }} ({{ (selectedFile.size / 1024 / 1024) | number:'1.0-2' }} MB)</span>
                 
-                <div class="clip-actions">
-                  <!-- Process button for clip -->
-                  <button mat-raised-button color="primary" size="small" 
-                          *ngIf="clip.status === 'pending' || clip.status === 'failed'"
-                          (click)="processClip(clip.id)">
-                    <mat-icon>settings_suggest</mat-icon>
-                    Behandl klip
-                  </button>
-                  <span class="processing-text" *ngIf="clip.status === 'processing'">
-                    <span class="mini-spinner"></span> Behandler...
-                  </span>
-                  <span class="completed-text" *ngIf="clip.status === 'completed'">
-                    <mat-icon>check_circle</mat-icon> Færdigbehandlet
-                  </span>
+                <app-button [disabled]="!selectedFile || isUploading()" (click)="uploadClip()" icon="play_arrow" text="Upload" color="primary"></app-button>
+              </div>
+
+              <!-- Upload progress bar -->
+              <div class="progress-box" *ngIf="isUploading()">
+                <mat-progress-bar mode="determinate" [value]="uploadProgress()"></mat-progress-bar>
+                <span class="progress-text">{{ uploadStatus() }}</span>
+              </div>
+
+              <!-- List of Clips under Meeting -->
+              <div class="clips-list" *ngIf="meeting.clips && meeting.clips.length > 0">
+                <div class="clip-item" *ngFor="let clip of meeting.clips">
+                  <div class="clip-main">
+                    <div class="clip-index">#{{ clip.sequence_number }}</div>
+                    <div class="clip-name">{{ clip.title }}</div>
+                    <span class="status-badge" [ngClass]="'status-' + clip.status">
+                      {{ formatStatus(clip.status) }}
+                    </span>
+                  </div>
+                  
+                  <div class="clip-actions">
+                    <!-- Process button for clip -->
+                    <app-button *ngIf="clip.status === 'pending' || clip.status === 'failed'" (click)="processClip(clip.id)" icon="settings_suggest" text="Behandl" color="primary"></app-button>
+                    <span class="processing-text" *ngIf="clip.status === 'processing'">
+                      <span class="mini-spinner"></span> Behandler...
+                    </span>
+                    <span class="completed-text" *ngIf="clip.status === 'completed'">
+                      <mat-icon>check_circle</mat-icon> Færdigbehandlet
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div class="no-clips-placeholder" *ngIf="!meeting.clips || meeting.clips.length === 0">
-              <mat-icon>video_file</mat-icon>
-              <p>Der er ikke tilføjet nogen klip til dette referat endnu.</p>
-            </div>
-          </div>
-
-          <!-- Right: Aggregated Summary -->
-          <div class="details-summary-section">
-            <div class="section-title-row">
-              <h3>Fælles AI-Referat & Resumé</h3>
-              <button mat-raised-button color="accent" 
-                      [disabled]="!hasCompletedClips(meeting) || meeting.status === 'processing'"
-                      (click)="aggregateMeeting(meeting.id)">
-                <mat-icon>analytics</mat-icon>
-                Generer Fælles Referat
-              </button>
-            </div>
-
-            <!-- Summary Processing State -->
-            <div class="summary-processing" *ngIf="meeting.status === 'processing'">
-              <div class="spinner"></div>
-              <p>Genererer fælles referat og samler beslutninger...</p>
-            </div>
-
-            <!-- Display Aggregated Summary -->
-            <div class="summary-content" *ngIf="meeting.status !== 'processing' && meeting.summary">
-              <div class="summary-markdown">
-                <pre class="markdown-preview">{{ meeting.summary }}</pre>
+              <div class="no-clips-placeholder" *ngIf="!meeting.clips || meeting.clips.length === 0">
+                <mat-icon>video_file</mat-icon>
+                <p>Der er ikke tilføjet nogen klip til dette referat endnu.</p>
               </div>
             </div>
 
-            <div class="no-summary-placeholder" *ngIf="meeting.status !== 'processing' && !meeting.summary">
-              <mat-icon>summarize</mat-icon>
-              <p>Fælles referat er ikke genereret endnu. Behandl klippene og tryk på "Generer Fælles Referat".</p>
+            <!-- Right: Aggregated Summary -->
+            <div class="details-summary-section">
+              <div class="section-title-row">
+                <h3>Fælles AI-Referat & Resumé</h3>
+                <app-button [disabled]="!hasCompletedClips(meeting) || meeting.status === 'processing'" (click)="aggregateMeeting(meeting.id)" icon="analytics" text="Fælles" color="accent"></app-button>
+              </div>
+
+              <!-- Summary Processing State -->
+              <div class="summary-processing" *ngIf="meeting.status === 'processing'">
+                <div class="spinner"></div>
+                <p>Genererer fælles referat og samler beslutninger...</p>
+              </div>
+
+              <!-- Display Aggregated Summary -->
+              <div class="summary-content" *ngIf="meeting.status !== 'processing' && meeting.summary">
+                <div class="summary-markdown">
+                  <pre class="markdown-preview">{{ meeting.summary }}</pre>
+                </div>
+              </div>
+
+              <div class="no-summary-placeholder" *ngIf="meeting.status !== 'processing' && !meeting.summary">
+                <mat-icon>summarize</mat-icon>
+                <p>Fælles referat er ikke genereret endnu. Behandl klippene og tryk på "Generer Fælles Referat".</p>
+              </div>
             </div>
           </div>
         </div>
@@ -179,9 +156,6 @@
     <mat-icon class="empty-icon">groups</mat-icon>
     <h2>Ingen referater oprettet endnu</h2>
     <p>Opret dit første referat for at komme i gang med at tilføje og analysere klip!</p>
-    <button mat-raised-button color="primary" (click)="showCreateForm = true">
-      <mat-icon>add</mat-icon>
-      Opret dit første referat
-    </button>
+    <app-button (click)="showCreateForm = true" icon="add" text="Opret første" color="primary"></app-button>
   </div>
 </div>

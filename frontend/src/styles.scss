@@ -7,11 +7,29 @@
 
 html {
   height: 100%;
+  
+  // Define the default LIGHT theme configuration using Cyan & Orange palettes
   @include mat.theme(
     (
       color: (
-        primary: mat.$azure-palette,
-        tertiary: mat.$blue-palette,
+        theme-type: light,
+        primary: mat.$cyan-palette,
+        tertiary: mat.$orange-palette,
+      ),
+      typography: Roboto,
+      density: 0,
+    )
+  );
+}
+
+// Define the DARK theme configuration using Cyan & Orange palettes
+.dark-theme {
+  @include mat.theme(
+    (
+      color: (
+        theme-type: dark,
+        primary: mat.$cyan-palette,
+        tertiary: mat.$orange-palette,
       ),
       typography: Roboto,
       density: 0,
@@ -20,20 +38,193 @@ html {
 }
 
 body {
-  // Default the application to a light color theme. This can be changed to
-  // `dark` to enable the dark color theme, or to `light dark` to defer to the
-  // user's system settings.
-  color-scheme: light;
+  // Let the browser defer color schemes natively
+  color-scheme: light dark;
 
   // Set a default background, font and text colors for the application using
-  // Angular Material's system-level CSS variables. Learn more about these
-  // variables at https://material.angular.dev/guide/system-variables
-  background-color: var(--mat-sys-surface);
-  color: var(--mat-sys-on-surface);
+  // Angular Material's system-level CSS variables.
+  background-color: var(--mat-sys-background);
+  color: var(--mat-sys-on-background);
   font: var(--mat-sys-body-medium);
 
   // Reset the user agent margin.
   margin: 0;
   height: 100%;
+  transition: background-color 0.3s ease, color 0.3s ease; // Smooth theme fade transitions!
 }
-/* You can add global styles to this file, and also import other style files */
+
+// ==========================================================================
+// material.angular.dev-style Action Buttons (.action-btn)
+// ==========================================================================
+.action-btn {
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 0.25px;
+  color: var(--mat-sys-on-surface-variant) !important;
+  background-color: transparent !important;
+  border: none !important; // NO outlines, borders, or fills by default!
+  border-radius: 4px !important; // Standard material.angular.dev subtle rounded corners
+  height: 40px;
+  padding: 0 16px !important; // Cozy spacing next to icon
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, color 0.2s ease !important;
+  box-shadow: none !important; // Flat, clean look!
+  cursor: pointer;
+  box-sizing: border-box;
+
+  // Align Material inner label container cleanly
+  ::v-deep .mdc-button__label {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100%;
+    height: 100%;
+  }
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    margin: 0 8px 0 0 !important; // Clean, standard margin
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--mat-sys-on-surface-variant);
+    transition: color 0.2s ease;
+  }
+
+  .github-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    margin: 0 8px 0 0 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--mat-sys-on-surface-variant);
+    transition: color 0.2s ease;
+  }
+
+  .btn-text {
+    max-width: none !important; // Always fully expanded!
+    opacity: 1 !important; // Always visible!
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    overflow: visible;
+    height: 100%;
+    font-family: Roboto, "Helvetica Neue", sans-serif;
+  }
+
+  // Active Link State (e.g. Navigation active state)
+  &.active-link {
+    color: var(--mat-sys-primary) !important;
+    background-color: rgba(0, 188, 212, 0.06) !important; // Extremely subtle highlight tint
+    font-weight: 700;
+
+    mat-icon {
+      color: var(--mat-sys-primary) !important;
+    }
+  }
+
+  // Hover Action - Simple, subtle document-style background highlight
+  &:hover {
+    background-color: var(--mat-sys-surface-variant) !important;
+    color: var(--mat-sys-on-surface) !important;
+
+    mat-icon, .github-icon {
+      color: var(--mat-sys-on-surface) !important;
+    }
+  }
+
+  // Disabled state handling
+  &[disabled] {
+    opacity: 0.35 !important;
+    pointer-events: none !important;
+    background-color: transparent !important;
+    color: var(--mat-sys-on-surface-variant) !important;
+    
+    mat-icon {
+      color: var(--mat-sys-on-surface-variant) !important;
+    }
+  }
+
+  // ------------------------------------------------------------------------
+  // Clean Prominent Solid Button Variants (For on-page actions like Opret, Upload)
+  // ------------------------------------------------------------------------
+  &.btn-primary {
+    background-color: var(--mat-sys-primary) !important;
+    color: var(--mat-sys-on-primary) !important;
+    font-weight: 600;
+
+    mat-icon {
+      color: var(--mat-sys-on-primary) !important;
+    }
+
+    &:hover {
+      background-color: var(--mat-sys-primary-container) !important;
+      color: var(--mat-sys-on-primary-container) !important;
+
+      mat-icon {
+        color: var(--mat-sys-on-primary-container) !important;
+      }
+    }
+  }
+
+  &.btn-accent {
+    background-color: var(--mat-sys-tertiary) !important;
+    color: var(--mat-sys-on-tertiary) !important;
+    font-weight: 600;
+
+    mat-icon {
+      color: var(--mat-sys-on-tertiary) !important;
+    }
+
+    &:hover {
+      background-color: var(--mat-sys-tertiary-container) !important;
+      color: var(--mat-sys-on-tertiary-container) !important;
+
+      mat-icon {
+        color: var(--mat-sys-on-tertiary-container) !important;
+      }
+    }
+  }
+
+  &.btn-warn {
+    background-color: var(--mat-sys-error) !important;
+    color: var(--mat-sys-on-error) !important;
+    font-weight: 600;
+
+    mat-icon {
+      color: var(--mat-sys-on-error) !important;
+    }
+
+    &:hover {
+      background-color: var(--mat-sys-error-container) !important;
+      color: var(--mat-sys-on-error-container) !important;
+
+      mat-icon {
+        color: var(--mat-sys-on-error-container) !important;
+      }
+    }
+  }
+}
+
+// ==========================================================================
+// Global material.angular.dev-style Flat Cards (mat-card, .mat-mdc-card)
+// ==========================================================================
+mat-card, .mat-mdc-card {
+  border-radius: 8px !important;
+  border: 1px solid var(--mat-sys-outline-variant) !important;
+  background-color: var(--mat-sys-surface-container) !important;
+  box-shadow: none !important; // 100% Flat! No heavy shadows!
+  transition: border-color 0.2s ease !important;
+
+  &:hover {
+    border-color: var(--mat-sys-outline) !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+}

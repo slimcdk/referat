@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -26,41 +26,42 @@ import { MeetingService } from '../../services/meeting.service';
   styleUrl: './settings.component.scss'
 })
 export class SettingsComponent implements OnInit {
-  llm_size: string = 'small';
-  data_retention_days: number = 30;
-  isSaving: boolean = false;
-  statusMessage: string = '';
+  private meetingService = inject(MeetingService);
 
-  constructor(private meetingService: MeetingService) {}
+  // Use modern Angular Signals to ensure perfect compatibility with Zoneless change detection
+  llm_size = signal<string>('small');
+  data_retention_days = signal<number>(30);
+  isSaving = signal<boolean>(false);
+  statusMessage = signal<string>('');
 
   ngOnInit(): void {
     this.meetingService.getSettings().subscribe({
       next: (data) => {
-        this.llm_size = data.llm_size;
-        this.data_retention_days = data.data_retention_days;
+        this.llm_size.set(data.llm_size);
+        this.data_retention_days.set(data.data_retention_days);
       },
       error: (err) => console.error('Failed to load settings', err)
     });
   }
 
   saveSettings(): void {
-    this.isSaving = true;
-    this.statusMessage = 'Saving settings...';
+    this.isSaving.set(true);
+    this.statusMessage.set('Gemmer indstillinger...');
     
     const settings = {
-      llm_size: this.llm_size,
-      data_retention_days: this.data_retention_days
+      llm_size: this.llm_size(),
+      data_retention_days: this.data_retention_days()
     };
 
     this.meetingService.updateSettings(settings).subscribe({
       next: () => {
-        this.isSaving = false;
-        this.statusMessage = 'Settings saved successfully!';
+        this.isSaving.set(false);
+        this.statusMessage.set('Indstillingerne blev gemt med succes!');
       },
       error: (err) => {
         console.error('Failed to save settings', err);
-        this.statusMessage = 'Failed to save settings.';
-        this.isSaving = false;
+        this.statusMessage.set('Kunne ikke gemme indstillingerne.');
+        this.isSaving.set(false);
       }
     });
   }

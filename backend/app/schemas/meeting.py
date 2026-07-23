@@ -10,7 +10,7 @@ class MeetingCreate(BaseModel):
 
 class ClipOut(BaseModel):
     id: int
-    meeting_id: int
+    meeting_id: Optional[int] = None # Optional for standalone clips
     title: str
     file_path: str
     sequence_number: int
