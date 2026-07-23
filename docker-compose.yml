@@ -25,6 +25,8 @@ services:
     image: mcr.microsoft.com/devcontainers/python:3.12-bookworm
     volumes:
       - .:/workspace:cached
+      - /home/christian/StyrPaa/MinRapport/møder/pipeline/models:/workspace/pipeline/models
+      - /home/christian/StyrPaa/MinRapport/transscribe:/workspace/transscribe
     # Allows easily reaching services running on the host (like local Ollama on port 11434)
     extra_hosts:
       - "host.docker.internal:host-gateway"
