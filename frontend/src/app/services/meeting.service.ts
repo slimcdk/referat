@@ -23,6 +23,22 @@ export class MeetingService {
     return this.http.get<any>(`${this.apiUrl}/meetings/${id}`, { headers: this.getHeaders() });
   }
 
+  createMeeting(title: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/meetings`, { title }, { headers: this.getHeaders() });
+  }
+
+  deleteMeeting(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/meetings/${id}`, { headers: this.getHeaders() });
+  }
+
+  processClip(clipId: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/meetings/clips/${clipId}/process`, {}, { headers: this.getHeaders() });
+  }
+
+  aggregateMeeting(meetingId: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/meetings/${meetingId}/aggregate`, {}, { headers: this.getHeaders() });
+  }
+
   semanticSearch(query: string, limit: number = 10): Observable<any[]> {
     return this.http.post<any[]>(`${this.apiUrl}/search`, { query, limit }, { headers: this.getHeaders() });
   }

@@ -16,7 +16,7 @@ export class MeetingUploadService {
     return token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : new HttpHeaders();
   }
 
-  uploadFileInChunks(file: File, title: string): Observable<any> {
+  uploadFileInChunks(meetingId: number, file: File): Observable<any> {
     const chunkSize = 5 * 1024 * 1024; // 5MB chunks
     const totalChunks = Math.ceil(file.size / chunkSize);
     const uploadId = crypto.randomUUID();
@@ -51,11 +51,10 @@ export class MeetingUploadService {
       concatMap(() => {
         const completeData = new FormData();
         completeData.append('upload_id', uploadId);
-        completeData.append('title', title);
         completeData.append('filename', file.name);
         completeData.append('total_chunks', totalChunks.toString());
 
-        return this.http.post(`${this.apiUrl}/upload/complete`, completeData, { headers: this.getHeaders() }).pipe(
+        return this.http.post(`${this.apiUrl}/${meetingId}/clips/upload/complete`, completeData, { headers: this.getHeaders() }).pipe(
           map(response => {
             return { type: 'complete', data: response };
           })

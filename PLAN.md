@@ -67,6 +67,27 @@ Build a fully-fledged, self-hosted web application for meeting analysis. The new
 - Expose tools like search_meetings, get_action_items, and get_meeting_summary so that coding agents (Claude, Gemini, Cursor, etc.) can extract meeting intelligence.
 - Seamless Agent Access: The MCP server and API will authenticate via a long-lived Personal Access Token (PAT) tied to a user account. This PAT can be configured in agent configurations (e.g., claude_desktop_config.json), ensuring prompts like "extract the architecture decisions from today's meeting" work instantly for the AI without needing manual web login.
 
+### Phase 7: Native Browser Recording (Screen & Audio)
+- **Objective**: Eliminate the need for third-party recording software (like OBS) by allowing users to record meetings directly from the Angular web application.
+- **Slack / Native Desktop Apps**: Recording a Slack meeting or any desktop application will work perfectly. The browser's `getDisplayMedia()` API allows the user to select "Entire Screen" or a specific "Application Window" (e.g., Slack). As long as "Share system audio" is checked, both the visual feed and the participants' voices are captured natively.
+- **Google Meet / Multi-Platform**: The user can actively participate in a Google Meet call in one tab while the Referat app records the exact same screen and microphone feed concurrently. System-level screen and audio capture are non-exclusive. Chrome can capture the microphone for Referat's recording while Google Meet simultaneously uses it for the live meeting.
+- **Dual-Stream Media Capture**: Utilize the browser's `navigator.mediaDevices.getDisplayMedia({ video: true, audio: true })` to capture the screen (Slack, Google Meet, etc.) along with the system audio, and concurrently use `navigator.mediaDevices.getUserMedia({ audio: true })` to capture the user's local microphone.
+- **Audio Mixing**: Implement the Web Audio API (`AudioContext`) to mix the system audio track (other meeting participants) and the local microphone track (the user) into a single unified audio stream.
+- **Chunked MediaRecorder**: Use the `MediaRecorder` API to capture the mixed video/audio stream in small chunks (e.g., 5-second intervals `mediaRecorder.start(5000)`).
+- **Live Up-streaming**: Stream the recorded chunks in real-time to the FastAPI backend via WebSockets or sequential HTTP chunked uploads. This ensures no recording data is lost if the browser crashes midway through a long meeting.
+- **Seamless Integration & Processing**: Once the user clicks "Stop Recording" in the Angular UI, the frontend signals the backend that the stream is complete. The backend finalizes the chunks into a standard `.webm` file, registers it as a new `MeetingClip` under the current `Meeting`, and immediately queues the `analyze_clip_task` in Celery so ML processing (Whisper, Keyframes, etc.) begins without manual user intervention.
+
+## Containerization & Deployment Strategy
+The platform supports modular, scalable, and simplified deployment architectures through custom Docker image pipelines. We maintain separate optimized images for individual production services, as well as an all-in-one image for rapid self-hosted environments:
+
+1. **Service-Specific Separate Images (Distributed Mode)**:
+   - **Frontend Image**: Nginx-based image serving the compiled Angular SPA frontend, optimized with static asset compression and proper routing fallbacks.
+   - **Server Image**: FastAPI backend image optimized for production (Uvicorn/Gunicorn), exposing endpoints, WebSockets, and the MCP server.
+   - **Worker Image**: Celery background worker image optimized for processing heavy AI/ML pipelines, pre-equipped with native GPU/CUDA support or CPU fallback.
+
+2. **Unified Combined Image (All-in-One Mode)**:
+   - A single multi-service container running the Frontend, FastAPI Server, and Celery Worker together (managed via a lightweight supervisor like supervisord or systemd-entrypoint) for simple single-command deployment on self-hosted instances.
+
 ## Frontend Testing Strategy
 To ensure a robust and maintainable UI, frontend testing will be implemented in two distinct layers:
 

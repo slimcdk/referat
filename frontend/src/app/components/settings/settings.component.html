@@ -1,24 +1,24 @@
 <div class="settings-container">
   <mat-card class="settings-card">
     <mat-card-header>
-      <mat-card-title>System Configuration</mat-card-title>
-      <mat-card-subtitle>Configure hardware and retention policies for Referat</mat-card-subtitle>
+      <mat-card-title>Systemkonfiguration</mat-card-title>
+      <mat-card-subtitle>Konfigurer hardwareindstillinger og opbevaringspolitikker for Referat</mat-card-subtitle>
     </mat-card-header>
 
     <mat-card-content class="settings-content">
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Ollama LLM Model Size</mat-label>
+        <mat-label>Ollama LLM Modelstørrelse</mat-label>
         <mat-select [(ngModel)]="llm_size" [disabled]="isSaving">
-          <mat-option value="small">Small (Gemma3 4B - Faster, low VRAM)</mat-option>
-          <mat-option value="medium">Medium (Gemma3 12B - Balanced)</mat-option>
-          <mat-option value="large">Large (Gemma3 27B - High Accuracy, GPU only)</mat-option>
+          <mat-option value="small">Lille (Gemma3 4B - Hurtig, lav VRAM)</mat-option>
+          <mat-option value="medium">Mellem (Gemma3 12B - Balanceret)</mat-option>
+          <mat-option value="large">Stor (Gemma3 27B - Høj Præcision, kun GPU)</mat-option>
         </mat-select>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Data Retention Policy (Days)</mat-label>
-        <input matInput type="number" [(ngModel)]="data_retention_days" min="0" placeholder="e.g. 30" [disabled]="isSaving">
-        <mat-hint>Set to 0 to keep raw meeting video and audio files forever.</mat-hint>
+        <mat-label>Dataopbevaringspolitik (Dage)</mat-label>
+        <input matInput type="number" [(ngModel)]="data_retention_days" min="0" placeholder="F.eks. 30" [disabled]="isSaving">
+        <mat-hint>Sæt til 0 for altid at beholde de rå video- og lydfiler til referatet.</mat-hint>
       </mat-form-field>
 
       <div class="status-message" *ngIf="statusMessage">{{ statusMessage }}</div>
@@ -27,7 +27,7 @@
     <mat-card-actions align="end">
       <button mat-raised-button color="primary" [disabled]="isSaving" (click)="saveSettings()">
         <mat-icon>save</mat-icon>
-        Save Changes
+        Gem Ændringer
       </button>
     </mat-card-actions>
   </mat-card>
